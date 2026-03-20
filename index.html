@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>PS FORUM | Polygon Strike — Игровая платформа с анимациями</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0A0A0F;
+      font-family: 'Inter', 'Roboto', sans-serif;
+      color: #FFFFFF;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: repeating-linear-gradient(0deg, rgba(138,43,226,0.03) 1px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px, transparent 40px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .app { max-width: 1280px; margin: 0 auto; padding: 0 24px 40px; position: relative; z-index: 2; }
+    
+    /* ========== КРАСИВЫЕ АНИМАЦИИ ========== */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes glowPulse {
+      0% { box-shadow: 0 0 0 0 rgba(138,43,226,0.4); }
+      70% { box-shadow: 0 0 0 8px rgba(138,43,226,0); }
+      100% { box-shadow: 0 0 0 0 rgba(138,43,226,0); }
+    }
+    @keyframes scalePop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    /* Анимации для элементов */
+    .topic-card, .post-card, .rule-card, .filter-chip, .nav-btn, .create-btn, .back-btn {
+      transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+    
+    .topic-card {
+      animation: fadeSlideUp 0.3s ease backwards;
+      animation-delay: calc(var(--i, 0) * 0.05s);
+    }
+    
+    .post-card {
+      animation: slideInRight 0.3s ease backwards;
+      animation-delay: calc(var(--i, 0) * 0.03s);
+    }
+    
+    /* Hover эффекты */
+    .topic-card:hover, .post-card:hover {
+      transform: translateY(-3px) scale(1.01);
+      border-color: #8A2BE2;
+      box-shadow: 0 8px 25px rgba(138,43,226,0.2);
+    }
+    
+    .filter-chip {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .filter-chip:hover {
+      transform: scale(1.05);
+      background: #2e2a4e;
+      color: white;
+      box-shadow: 0 0 12px rgba(138,43,226,0.4);
+    }
+    .filter-chip.active {
+      background: #8A2BE2;
+      color: white;
+      box-shadow: 0 0 15px rgba(138,43,226,0.6);
+      animation: glowPulse 0.5s ease;
+    }
+    
+    .nav-btn {
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover {
+      transform: scale(1.05);
+      background: #2a2350;
+      color: white;
+      box-shadow: 0 0 10px rgba(138,43,226,0.4);
+    }
+    .nav-btn.active {
+      background: #8A2BE2;
+      box-shadow: 0 0 15px rgba(138,43,226,0.6);
+      animation: glowPulse 0.5s ease;
+    }
+    
+    .create-btn {
+      transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+    .create-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px #8A2BE2;
+    }
+    .create-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .back-btn {
+      transition: all 0.2s ease;
+    }
+    .back-btn:hover {
+      transform: translateX(-3px) scale(1.02);
+      border-color: #8A2BE2;
+      box-shadow: 0 0 12px rgba(138,43,226,0.3);
+    }
+    
+    .action-icon {
+      transition: all 0.15s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+    .action-icon:hover {
+      transform: scale(1.08);
+      color: #8A2BE2;
+      text-shadow: 0 0 6px #8A2BE2;
+    }
+    .action-icon:active {
+      transform: scale(0.92);
+    }
+    
+    .like-btn.liked {
+      animation: scalePop 0.3s ease;
+    }
+    
+    .profile-mini {
+      transition: all 0.2s ease;
+    }
+    .profile-mini:hover {
+      transform: scale(1.02);
+      border-color: #8A2BE2;
+      box-shadow: 0 0 12px rgba(138,43,226,0.4);
+    }
+    
+    /* Анимация для появления контента при смене раздела */
+    .view-transition {
+      animation: fadeSlideUp 0.3s ease;
+    }
+    
+    /* Стили для кнопок */
+    .header {
+      position: sticky;
+      top: 0;
+      background: rgba(10,10,15,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #1F1F2E;
+      padding: 16px 0;
+      margin-bottom: 32px;
+      z-index: 100;
+      animation: fadeSlideDown 0.4s ease;
+    }
+    .header-content {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .logo h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #8A2BE2, #00E5FF);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .logo p { font-size: 0.7rem; color: #9CA3AF; letter-spacing: 2px; }
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      background: #111118;
+      padding: 4px;
+      border-radius: 60px;
+      border: 1px solid #1F1F2E;
+    }
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: #9CA3AF;
+      font-weight: 600;
+      padding: 8px 20px;
+      border-radius: 40px;
+      cursor: pointer;
+    }
+    .profile-mini {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #111118;
+      padding: 6px 16px 6px 10px;
+      border-radius: 60px;
+      border: 1px solid #2a2350;
+      cursor: pointer;
+      position: relative;
+    }
+    .admin-badge {
+      background: #FF3B3B;
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 20px;
+      margin-left: 6px;
+    }
+    .verified-badge {
+      color: #00E5FF;
+      margin-left: 4px;
+      font-size: 0.9rem;
+      cursor: help;
+    }
+    .logout-btn {
+      background: #2a2350;
+      border: none;
+      color: #FF3B3B;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      margin-left: 8px;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover { transform: scale(1.05); background: #3a2a60; }
+    
+    .toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 28px; }
+    .create-btn {
+      background: linear-gradient(135deg, #8A2BE2, #6b21cc);
+      border: none;
+      color: white;
+      font-weight: 700;
+      padding: 12px 28px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Orbitron', monospace;
+    }
+    .filter-group { display: flex; gap: 8px; background: #111118; padding: 5px; border-radius: 48px; border: 1px solid #1F1F2E; }
+    .filter-chip { background: transparent; border: none; padding: 8px 20px; border-radius: 40px; color: #9CA3AF; cursor: pointer; }
+    .section-nav { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .topics-grid { display: flex; flex-direction: column; gap: 12px; }
+    .topic-card {
+      background: #111118;
+      border: 1px solid #1F1F2E;
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .topic-title { font-family: 'Orbitron', monospace; font-weight: 600; margin-bottom: 6px; }
+    .topic-meta { display: flex; gap: 20px; font-size: 0.7rem; color: #9CA3AF; }
+    .back-btn {
+      background: #111118;
+      border: 1px solid #2a2350;
+      padding: 8px 20px;
+      border-radius: 10px;
+      color: #ccc;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .post-card {
+      background: #111118;
+      border: 1px solid #1F1F2E;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 16px;
+    }
+    .post-card.pinned { border: 2px solid #FFD966; background: #1a1a2a; }
+    .poly-avatar {
+      width: 56px;
+      height: 56px;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.2s;
+      clip-path: polygon(25% 0%, 75% 0%, 100% 25%, 100% 75%, 75% 100%, 25% 100%, 0% 75%, 0% 25%);
+    }
+    .poly-avatar:hover { transform: rotate(5deg) scale(1.08); filter: drop-shadow(0 0 8px currentColor); }
+    .post-content { flex: 1; }
+    .post-author { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    .username { font-weight: 700; font-family: 'Orbitron', monospace; }
+    .role-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 40px; background: #1f1b36; }
+    .post-actions { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+    .action-icon {
+      background: none;
+      border: none;
+      color: #9CA3AF;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+    }
+    .admin-action { background: #2a2350; border-radius: 20px; }
+    .reply-area {
+      background: #111118;
+      border-radius: 16px;
+      padding: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      margin-top: 12px;
+      border: 1px solid transparent;
+    }
+    .reply-area.open { max-height: 280px; padding: 20px; border-color: #8A2BE2; animation: fadeSlideUp 0.3s ease; }
+    .reply-text { width: 100%; background: #0A0A0F; border: 1px solid #2a2350; border-radius: 12px; padding: 12px; color: white; }
+    .send-btn { background: #8A2BE2; border: none; padding: 10px 24px; border-radius: 10px; color: white; margin-top: 12px; cursor: pointer; transition: all 0.2s; }
+    .send-btn:hover { transform: scale(1.02); box-shadow: 0 0 12px #8A2BE2; }
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      visibility: hidden;
+      opacity: 0;
+      transition: 0.2s;
+    }
+    .modal-overlay.active { visibility: visible; opacity: 1; }
+    .modal-card {
+      background: #111118;
+      border: 1px solid #8A2BE2;
+      border-radius: 28px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+      animation: fadeSlideUp 0.3s ease;
+    }
+    .toast-container { position: fixed; top: 90px; right: 24px; z-index: 1100; display: flex; flex-direction: column; gap: 12px; }
+    .toast { background: #111118; border-left: 4px solid #39FF14; padding: 12px 20px; border-radius: 12px; animation: slideInRight 0.3s ease; }
+    .hidden-view { display: none; }
+    .rules-grid { display: flex; flex-direction: column; gap: 16px; }
+    .rule-card { background: #111118; border: 1px solid #1F1F2E; border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 16px; transition: all 0.2s; }
+    .rule-card:hover { transform: translateX(5px) scale(1.01); border-color: #8A2BE2; box-shadow: 0 0 15px rgba(138,43,226,0.2); }
+    .auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.95);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .auth-container {
+      background: #111118;
+      border: 1px solid #8A2BE2;
+      border-radius: 32px;
+      padding: 40px;
+      width: 90%;
+      max-width: 450px;
+      animation: fadeSlideUp 0.4s ease;
+    }
+    .auth-container input {
+      width: 100%;
+      background: #0A0A0F;
+      border: 1px solid #2a2350;
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: white;
+      margin-bottom: 16px;
+      transition: all 0.2s;
+    }
+    .auth-container input:focus { outline: none; border-color: #8A2BE2; box-shadow: 0 0 10px rgba(138,43,226,0.3); transform: scale(1.01); }
+    .auth-buttons button {
+      flex: 1;
+      padding: 12px;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    .auth-buttons button:hover { transform: scale(1.02); }
+    .error-msg { color: #FF3B3B; font-size: 0.8rem; text-align: center; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-content">
+      <div class="logo"><h1>◢ PS FORUM</h1><p>POLYGON STRIKE // АНИМИРОВАННЫЙ ИНТЕРФЕЙС</p></div>
+      <div class="nav-links" id="navLinks"></div>
+      <div class="profile-mini" id="profileMiniBtn">
+        <div id="miniAvatar" style="width:32px;height:32px;clip-path:polygon(25% 0%,75% 0%,100% 25%,100% 75%,75% 100%,25% 100%,0% 75%,0% 25%);"></div>
+        <span id="miniNick"></span>
+        <div class="online-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mainView"><div class="toolbar"><button class="create-btn" id="createTopicBtn">✨ + Создать тему</button><div class="filter-group" id="filterGroup"></div></div><div class="section-nav" id="sectionNav"></div><div id="topicsList" class="topics-grid"></div></div>
+  <div id="threadView" class="hidden-view"><button class="back-btn" id="closeThreadBtn">← Назад к темам</button><h2 id="threadTitle"></h2><div id="postsList"></div><div class="reply-container"><button class="reply-trigger" id="openReplyBtn" style="background:#2a2350;border:none;padding:10px 24px;border-radius:10px;color:white;cursor:pointer;transition:all 0.2s;">💬 Ответить</button><div class="reply-area" id="replyArea"><textarea class="reply-text" rows="2" placeholder="Напишите сообщение..."></textarea><button class="send-btn" id="sendMessageBtn">📩 Отправить</button></div></div></div>
+  <div id="rulesView" class="hidden-view"><button class="back-btn" id="closeRulesBtn">← Назад</button><h2>📜 Правила комьюнити</h2><div class="rules-grid" id="rulesGrid"></div></div>
+
+  <div class="modal-overlay" id="createTopicModal"><div class="modal-card"><h3>✨ Создание темы</h3><input type="text" id="newTopicTitle" placeholder="Название темы"><select id="newTopicSectionSelect"></select><textarea id="newTopicContent" placeholder="Текст сообщения..."></textarea><div class="modal-buttons"><button id="cancelTopicBtn" style="background:#2a2350;color:white;">Отмена</button><button id="submitTopicBtn" style="background:#8A2BE2;color:white;">Создать</button></div></div></div>
+  <div class="modal-overlay" id="profileModal"><div class="modal-card" id="profileCardContent"></div></div>
+  <div class="modal-overlay" id="verifyModal"><div class="modal-card"><h3>✔ Получение галочки</h3><p>Загрузите видео, где вы показываете свой аккаунт в Polygon Strike</p><input type="file" id="verifyVideo" accept="video/*"><textarea id="verifyDescription" placeholder="Описание"></textarea><div class="modal-buttons"><button id="cancelVerifyBtn" style="background:#2a2350;">Отмена</button><button id="submitVerifyBtn" style="background:#8A2BE2;">Отправить</button></div></div></div>
+  <div class="modal-overlay" id="reportModal"><div class="modal-card"><h3>🚨 Пожаловаться</h3><textarea id="reportReason" placeholder="Причина жалобы..." rows="3"></textarea><div class="modal-buttons"><button id="cancelReportBtn" style="background:#2a2350;">Отмена</button><button id="submitReportBtn" style="background:#8A2BE2;">Отправить</button></div></div></div>
+  <div class="modal-overlay" id="adminReportsModal"><div class="modal-card" style="max-width:600px;"><h3>📋 Заявки на верификацию</h3><div id="reportsList"></div><button id="closeReportsBtn" style="background:#2a2350;padding:8px 20px;border-radius:40px;margin-top:16px;">Закрыть</button></div></div>
+  <div class="toast-container" id="toastContainer"></div>
+</div>
+
+<script>
+const ADMIN_NICKNAMES = ["PS Inside", "FremZer666"];
+const DB_KEYS = {
+  USERS: 'ps_forum_users_final',
+  TOPICS: 'ps_forum_topics_final',
+  POSTS: 'ps_forum_posts_final',
+  REPORTS: 'ps_forum_reports_final',
+  VERIFY: 'ps_forum_verify_final',
+  BANNED: 'ps_forum_banned_final',
+  MUTED: 'ps_forum_muted_final',
+  PINNED: 'ps_forum_pinned_final',
+  LIKES: 'ps_forum_likes_final',
+  SESSION: 'ps_forum_session_final'
+};
+
+let currentUser = null;
+let sections = [
+  { id: "guides", name: "🎯 Гайды", icon: "📚" },
+  { id: "tactics", name: "💥 Тактики", icon: "⚔️" },
+  { id: "help", name: "🛠 Помощь", icon: "🔧" },
+  { id: "chat", name: "🗣 Общение", icon: "💬" },
+  { id: "news", name: "📰 Новости", icon: "📢" }
+];
+let currentSection = "guides";
+let currentFilter = "new";
+let currentTopicId = null;
+
+function initDatabase() {
+  let users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+  for (const adminName of ADMIN_NICKNAMES) {
+    if (!users.some(u => u.nickname === adminName)) {
+      users.push({
+        id: "admin_" + adminName.replace(/\s/g, '_') + "_" + Date.now(),
+        nickname: adminName,
+        password: btoa("admin123"),
+        role: "moderator",
+        avatarColor: "#FF3B3B",
+        registered: new Date().toLocaleDateString(),
+        verified: true,
+        isAdmin: true
+      });
+    }
+  }
+  localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+  
+  let topics = JSON.parse(localStorage.getItem(DB_KEYS.TOPICS)) || [];
+  let posts = JSON.parse(localStorage.getItem(DB_KEYS.POSTS)) || [];
+  if (topics.length === 0) {
+    const defaultUser = users.find(u => !u.isAdmin) || users[0];
+    topics = [
+      { id: 1, title: "🔥 Идеальный прицел: гайд по рейлгану", section: "guides", authorId: defaultUser?.id, author: defaultUser?.nickname || "NeonGhost", postsCount: 2, lastActivity: Date.now() },
+      { id: 2, title: "💣 Новая тактика на карте 'Разлом'", section: "tactics", authorId: defaultUser?.id, author: defaultUser?.nickname || "ShadowStrike", postsCount: 1, lastActivity: Date.now() }
+    ];
+    posts = [
+      { id: 1, topicId: 1, authorId: defaultUser?.id, author: defaultUser?.nickname || "NeonGhost", role: "pro", content: "Советую использовать импульсный мод и целиться в голову!", likes: 4, timestamp: Date.now() - 3600000, avatarColor: "#8A2BE2" },
+      { id: 2, topicId: 1, authorId: users.find(u => u.isAdmin)?.id, author: ADMIN_NICKNAMES[0], role: "moderator", content: "Отличный гайд! 🔴 Админ одобряет.", likes: 2, timestamp: Date.now() - 3000000, avatarColor: "#FF3B3B" }
+    ];
+    localStorage.setItem(DB_KEYS.TOPICS, JSON.stringify(topics));
+    localStorage.setItem(DB_KEYS.POSTS, JSON.stringify(posts));
+  }
+  if (!localStorage.getItem(DB_KEYS.REPORTS)) localStorage.setItem(DB_KEYS.REPORTS, JSON.stringify([]));
+  if (!localStorage.getItem(DB_KEYS.VERIFY)) localStorage.setItem(DB_KEYS.VERIFY, JSON.stringify([]));
+  if (!localStorage.getItem(DB_KEYS.BANNED)) localStorage.setItem(DB_KEYS.BANNED, JSON.stringify([]));
+  if (!localStorage.getItem(DB_KEYS.MUTED)) localStorage.setItem(DB_KEYS.MUTED, JSON.stringify([]));
+  if (!localStorage.getItem(DB_KEYS.PINNED)) localStorage.setItem(DB_KEYS.PINNED, JSON.stringify([]));
+  if (!localStorage.getItem(DB_KEYS.LIKES)) localStorage.setItem(DB_KEYS.LIKES, JSON.stringify([]));
+}
+
+function showAuthModal() {
+  const modal = document.createElement('div');
+  modal.className = 'auth-overlay';
+  modal.id = 'authModal';
+  modal.innerHTML = `<div class="auth-container"><h2>◢ PS FORUM</h2><div id="authForm"><input type="text" id="authNickname" placeholder="Никнейм"><input type="password" id="authPassword" placeholder="Пароль"><div id="authError" class="error-msg"></div><div class="auth-buttons"><button id="authLoginBtn">Войти</button><button id="authRegisterBtn">Регистрация</button></div><div class="auth-switch" id="authSwitch" style="text-align:center;margin-top:20px;color:#9CA3AF;cursor:pointer;">Нет аккаунта? <span style="color:#8A2BE2;">Зарегистрироваться</span></div></div></div>`;
+  document.body.appendChild(modal);
+  let isLoginMode = true;
+  function updateForm() { document.getElementById('authLoginBtn').textContent = isLoginMode ? 'Войти' : 'Зарегистрироваться'; document.getElementById('authSwitch').innerHTML = isLoginMode ? 'Нет аккаунта? <span style="color:#8A2BE2;">Зарегистрироваться</span>' : 'Уже есть аккаунт? <span style="color:#8A2BE2;">Войти</span>'; }
+  function handleAuth() {
+    const nickname = document.getElementById('authNickname').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const errorDiv = document.getElementById('authError');
+    if (!nickname || !password) { errorDiv.textContent = 'Заполните все поля'; return; }
+    const users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+    if (isLoginMode) {
+      const user = users.find(u => u.nickname === nickname && atob(u.password || '') === password);
+      if (user) { currentUser = user; localStorage.setItem(DB_KEYS.SESSION, JSON.stringify({ id: user.id, nickname: user.nickname })); modal.remove(); initAppAfterAuth(); }
+      else errorDiv.textContent = 'Неверный ник или пароль';
+    } else {
+      if (users.some(u => u.nickname === nickname)) { errorDiv.textContent = 'Пользователь уже существует'; return; }
+      const newUser = { id: "user_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6), nickname: nickname, password: btoa(password), role: "player", avatarColor: ["#8A2BE2", "#00E5FF", "#FFD966"][Math.floor(Math.random() * 3)], registered: new Date().toLocaleDateString(), verified: false, isAdmin: ADMIN_NICKNAMES.includes(nickname) };
+      users.push(newUser); localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users)); currentUser = newUser; localStorage.setItem(DB_KEYS.SESSION, JSON.stringify({ id: newUser.id, nickname: newUser.nickname })); modal.remove(); initAppAfterAuth();
+    }
+  }
+  document.getElementById('authLoginBtn').addEventListener('click', handleAuth);
+  document.getElementById('authRegisterBtn').addEventListener('click', () => { isLoginMode = !isLoginMode; updateForm(); document.getElementById('authError').textContent = ''; });
+  document.getElementById('authSwitch').addEventListener('click', () => { isLoginMode = !isLoginMode; updateForm(); document.getElementById('authError').textContent = ''; });
+}
+
+function checkSession() {
+  const session = localStorage.getItem(DB_KEYS.SESSION);
+  if (session) { const { id } = JSON.parse(session); const users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || []; currentUser = users.find(u => u.id === id); }
+  if (!currentUser) showAuthModal();
+  else initAppAfterAuth();
+}
+
+function escapeHtml(str) { if (!str) return ""; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m)); }
+function showToast(msg) { const container = document.getElementById("toastContainer"); const toast = document.createElement("div"); toast.className = "toast"; toast.innerHTML = `✨ ${msg}`; container.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
+function isAdmin() { return currentUser && ADMIN_NICKNAMES.includes(currentUser.nickname); }
+function isMuted(userId) { const muted = JSON.parse(localStorage.getItem(DB_KEYS.MUTED)) || []; return muted.includes(userId); }
+function isBanned(userId) { const banned = JSON.parse(localStorage.getItem(DB_KEYS.BANNED)) || []; return banned.includes(userId); }
+function saveAll(users, topics, posts, reports, verifyRequests, banned, muted, pinned, likes) {
+  localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+  localStorage.setItem(DB_KEYS.TOPICS, JSON.stringify(topics));
+  localStorage.setItem(DB_KEYS.POSTS, JSON.stringify(posts));
+  localStorage.setItem(DB_KEYS.REPORTS, JSON.stringify(reports));
+  localStorage.setItem(DB_KEYS.VERIFY, JSON.stringify(verifyRequests));
+  localStorage.setItem(DB_KEYS.BANNED, JSON.stringify(banned));
+  localStorage.setItem(DB_KEYS.MUTED, JSON.stringify(muted));
+  localStorage.setItem(DB_KEYS.PINNED, JSON.stringify(pinned));
+  localStorage.setItem(DB_KEYS.LIKES, JSON.stringify(likes));
+}
+
+function logout() { localStorage.removeItem(DB_KEYS.SESSION); currentUser = null; location.reload(); }
+
+function renderFilters() {
+  const filters = ["new", "popular"];
+  const names = { new: "🆕 Новые", popular: "🔥 Популярные" };
+  const div = document.getElementById("filterGroup");
+  if (!div) return;
+  div.innerHTML = filters.map(f => `<button class="filter-chip ${currentFilter === f ? 'active' : ''}" data-filter="${f}">${names[f]}</button>`).join("");
+  document.querySelectorAll(".filter-chip").forEach(btn => btn.addEventListener("click", () => { currentFilter = btn.dataset.filter; renderMain(); }));
+}
+
+function renderSectionNav() {
+  const container = document.getElementById("sectionNav");
+  if (!container) return;
+  container.innerHTML = sections.map(sec => `<button class="filter-chip ${currentSection === sec.id ? 'active' : ''}" data-section="${sec.id}">${sec.icon} ${sec.name}</button>`).join("");
+  document.querySelectorAll("#sectionNav .filter-chip").forEach(btn => btn.addEventListener("click", () => { currentSection = btn.dataset.section; renderMain(); renderSectionNav(); }));
+}
+
+function renderMain() {
+  const mainView = document.getElementById("mainView");
+  if (mainView) mainView.style.display = "block";
+  const threadView = document.getElementById("threadView");
+  if (threadView) threadView.classList.add("hidden-view");
+  const rulesView = document.getElementById("rulesView");
+  if (rulesView) rulesView.classList.add("hidden-view");
+  
+  let topics = JSON.parse(localStorage.getItem(DB_KEYS.TOPICS)) || [];
+  let filtered = topics.filter(t => t.section === currentSection);
+  if (currentFilter === "popular") filtered.sort((a, b) => b.postsCount - a.postsCount);
+  else filtered.sort((a, b) => b.lastActivity - a.lastActivity);
+  const container = document.getElementById("topicsList");
+  if (!container) return;
+  if (filtered.length === 0) container.innerHTML = `<div style="text-align:center;padding:40px;color:#9CA3AF;">📭 В этом разделе пока нет тем. Создай первую!</div>`;
+  else container.innerHTML = filtered.map((t, i) => `<div class="topic-card" style="--i:${i}" data-topic-id="${t.id}"><div><div class="topic-title">${escapeHtml(t.title)}</div><div class="topic-meta"><span>👤 ${escapeHtml(t.author)}</span><span>💬 ${t.postsCount}</span></div></div><div>➡️</div></div>`).join("");
+  document.querySelectorAll(".topic-card").forEach(card => card.addEventListener("click", () => openThread(parseInt(card.dataset.topicId))));
+  updateMiniProfile();
+  renderFilters();
+  renderSectionNav();
+}
+
+function openThread(topicId) {
+  if (isBanned(currentUser.id)) { showToast("❌ Вы забанены!"); return; }
+  let topics = JSON.parse(localStorage.getItem(DB_KEYS.TOPICS)) || [];
+  const topic = topics.find(t => t.id === topicId);
+  if (!topic) return;
+  document.getElementById("mainView").style.display = "none";
+  document.getElementById("threadView").classList.remove("hidden-view");
+  document.getElementById("rulesView").classList.add("hidden-view");
+  document.getElementById("threadTitle").innerHTML = escapeHtml(topic.title);
+  currentTopicId = topicId;
+  renderPosts(topicId);
+  document.getElementById("replyArea").classList.remove("open");
+}
+
+function renderPosts(topicId) {
+  let posts = JSON.parse(localStorage.getItem(DB_KEYS.POSTS)) || [];
+  let users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+  let pinned = JSON.parse(localStorage.getItem(DB_KEYS.PINNED)) || [];
+  let muted = JSON.parse(localStorage.getItem(DB_KEYS.MUTED)) || [];
+  let likes = JSON.parse(localStorage.getItem(DB_KEYS.LIKES)) || [];
+  
+  let topicPosts = posts.filter(p => p.topicId === topicId).sort((a, b) => a.timestamp - b.timestamp);
+  const pinnedPosts = topicPosts.filter(p => pinned.includes(p.id));
+  const normalPosts = topicPosts.filter(p => !pinned.includes(p.id));
+  topicPosts = [...pinnedPosts, ...normalPosts];
+  
+  const container = document.getElementById("postsList");
+  if (!container) return;
+  if (topicPosts.length === 0) { container.innerHTML = `<div style="text-align:center;padding:40px;color:#9CA3AF;">💬 Пока нет сообщений. Будь первым!</div>`; return; }
+  
+  container.innerHTML = topicPosts.map((p, idx) => {
+    const user = users.find(u => u.id === p.authorId);
+    const verified = user?.verified;
+    const isPostAuthor = p.authorId === currentUser.id;
+    const canDelete = isAdmin() || isPostAuthor;
+    const isUserMuted = muted.includes(p.authorId);
+    const isLiked = likes.includes(p.id);
+    const isUserAdmin = ADMIN_NICKNAMES.includes(p.author);
+    return `<div class="post-card ${pinned.includes(p.id) ? 'pinned' : ''} ${isUserMuted ? 'muted-user' : ''}" style="--i:${idx}" data-post-id="${p.id}" data-author-id="${p.authorId}"><div class="poly-avatar" style="background:${p.avatarColor};"></div><div class="post-content"><div class="post-author"><span class="username" style="color:${isUserAdmin ? '#FF3B3B' : '#fff'}">${escapeHtml(p.author)}${verified ? '<span class="verified-badge" title="Подтверждённый пользователь">✔</span>' : ''}${isUserAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}</span><span class="role-badge">${isUserAdmin ? '🔴 Admin' : p.role === 'veteran' ? '🟡 Veteran' : '🔵 Player'}</span><span style="font-size:0.7rem;">${new Date(p.timestamp).toLocaleString()}</span>${pinned.includes(p.id) ? '<span style="color:#FFD966;">📌 Закреплено</span>' : ''}</div><div>${escapeHtml(p.content)}</div><div class="post-actions"><button class="action-icon like-btn" data-post-id="${p.id}">${isLiked ? '❤️' : '🤍'} ${p.likes || 0}</button><button class="action-icon quote-btn" data-author="${p.author}" data-content="${escapeHtml(p.content)}">💬 Цитировать</button><button class="action-icon report-btn" data-post-id="${p.id}">🚨 Пожаловаться</button>${canDelete ? `<button class="action-icon delete-btn" data-post-id="${p.id}">🗑 Удалить</button>` : ''}${isAdmin() ? `<button class="action-icon admin-action mute-btn" data-user-id="${p.authorId}" data-user-name="${p.author}">🔇 ${muted.includes(p.authorId) ? 'Размут' : 'Мут'}</button><button class="action-icon admin-action ban-btn" data-user-id="${p.authorId}">🔴 Бан</button><button class="action-icon admin-action verify-grant-btn" data-user-id="${p.authorId}">${verified ? '❌ Забрать галочку' : '✔ Выдать галочку'}</button><button class="action-icon admin-action pin-btn" data-post-id="${p.id}">${pinned.includes(p.id) ? '📌 Открепить' : '📌 Закрепить'}</button>` : ''}</div></div></div>`;
+  }).join("");
+  
+  attachPostEventListeners(topicId);
+}
+
+function attachPostEventListeners(topicId) {
+  let posts = JSON.parse(localStorage.getItem(DB_KEYS.POSTS)) || [];
+  let users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+  let reports = JSON.parse(localStorage.getItem(DB_KEYS.REPORTS)) || [];
+  let verifyRequests = JSON.parse(localStorage.getItem(DB_KEYS.VERIFY)) || [];
+  let banned = JSON.parse(localStorage.getItem(DB_KEYS.BANNED)) || [];
+  let muted = JSON.parse(localStorage.getItem(DB_KEYS.MUTED)) || [];
+  let pinned = JSON.parse(localStorage.getItem(DB_KEYS.PINNED)) || [];
+  let likes = JSON.parse(localStorage.getItem(DB_KEYS.LIKES)) || [];
+  let topics = JSON.parse(localStorage.getItem(DB_KEYS.TOPICS)) || [];
+  
+  document.querySelectorAll(".like-btn").forEach(btn => btn.addEventListener("click", (e) => { const pid = parseInt(btn.dataset.postId); const post = posts.find(p => p.id === pid); if (post) { if (likes.includes(pid)) { likes = likes.filter(id => id !== pid); post.likes--; } else { likes.push(pid); post.likes++; btn.classList.add('liked'); setTimeout(() => btn.classList.remove('liked'), 300); } saveAll(users, topics, posts, reports, verifyRequests, banned, muted, pinned, likes); renderPosts(topicId); } e.stopPropagation(); }));
+  document.querySelectorAll(".quote-btn").forEach(btn => btn.addEventListener("click", () => { const textarea = document.querySelector("#replyArea .reply-text"); if (textarea) { textarea.value = `> ${btn.dataset.author}: ${btn.dataset.content}\n\n`; document.getElementById("replyArea").classList.add("open"); textarea.focus(); } }));
+  document.querySelectorAll(".delete-btn").forEach(btn => btn.addEventListener("click", (e) => { const pid = parseInt(btn.dataset.postId); const post = posts.find(p => p.id === pid); if (post && (isAdmin() || post.authorId === currentUser.id)) { if (confirm("Удалить сообщение?")) { posts = posts.filter(p => p.id !== pid); const topic = topics.find(t => t.id === topicId); if (topic) topic.postsCount--; saveAll(users, topics, posts, reports, verifyRequests, banned, muted, pinned, likes); renderPosts(topicId); showToast("Сообщение удалено"); } } e.stopPropagation(); }));
+  document.querySelectorAll(".report-btn").forEach(btn => btn.addEventListener("click", (e) => { const postId = parseInt(btn.dataset.postId); document.getElementById("reportModal").classList.add("active"); document.getElementById("submitReportBtn").onclick = () => { const reason = document.getElementById("reportReason").value; if (reason) { reports.push({ id: Date.now(), postId, reason, reportedBy: currentUser.id }); saveAll(users, topics, posts, reports, verifyRequests, banned, muted, pinned, likes); showToast("Жалоба отправлена админу"); document.getElementById("reportModal").classList.remove("active"); document.getElementById("reportReason").value = ""; } }; e.stopPropagation(); }));
+  if (isAdmin()) {
+    document.querySelectorAll(".mute-btn").forEach(btn => btn.addEventListener("click", (e) => { const userId = btn.dataset.userId; if (muted.includes(userId)) muted = muted.filter(id => id !== userId); else muted.push(userId); saveAll(users, topics, posts, reports, verifyRequests, banned, muted, pinned, likes); renderPosts(topicId); showToast(`Пользователь ${btn.dataset.userName} ${muted.includes(userId) ? 'замучен' : 'размучен'}`); e.stopPropagation(); }));
+    document.querySelectorAll(".ban-btn").forEach(btn => btn.addEventListener("click", (e) => { const userId = btn.dataset.userId; if (confirm("Забанить пользователя?")) { banned.push(userId); saveAll(users, topics, posts, reports, verifyRequests, banned, muted, pinned, likes); showToast("Пользователь забанен"); } e.stopPropagation(); }));
+    document.querySelectorAll(".verify-grant-btn").forEach(btn => btn.addEventListener("click", (e) => { const userId = btn.dataset.userId; const user = users.find(u => u.id === userId); if (user) { user.verified = !user.verified; saveAll(users, topics, posts, reports, verifyRequests, banned, muted, pinned, likes); renderPosts(topicId); showToast(`Галочка ${user.verified ? 'выдана' : 'забрана'} для ${user.nickname}`); } e.stopPropagation(); }));
+    document.querySelectorAll(".pin-btn").forEach(btn => btn.addEventListener("click", (e) => { const postId = parseInt(btn.dataset.postId); if (pinned.includes(postId)) pinned = pinned.filter(id => id !== postId); else pinned.push(postId); saveAll(users, topics, posts, reports, verifyRequests, banned, muted, pinned, likes); renderPosts(topicId); showToast(pinned.includes(postId) ? "Сообщение закреплено" : "Сообщение откреплено"); e.stopPropagation(); }));
+  }
+}
+
+function sendMessage() {
+  if (isBanned(currentUser.id)) { showToast("❌ Вы забанены!"); return; }
+  if (isMuted(currentUser.id)) { showToast("🔇 Вы в муте!"); return; }
+  const textarea = document.querySelector("#replyArea .reply-text");
+  const content = textarea.value.trim();
+  if (!content || !currentTopicId) return;
+  let posts = JSON.parse(localStorage.getItem(DB_KEYS.POSTS)) || [];
+  let topics = JSON.parse(localStorage.getItem(DB_KEYS.TOPICS)) || [];
+  let users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+  let reports = JSON.parse(localStorage.getItem(DB_KEYS.REPORTS)) || [];
+  let verifyRequests = JSON.parse(localStorage.getItem(DB_KEYS.VERIFY)) || [];
+  let banned = JSON.parse(localStorage.getItem(DB_KEYS.BANNED)) || [];
+  let muted = JSON.parse(localStorage.getItem(DB_KEYS.MUTED)) || [];
+  let pinned = JSON.parse(localStorage.getItem(DB_KEYS.PINNED)) || [];
+  let likes = JSON.parse(localStorage.getItem(DB_KEYS.LIKES)) || [];
+  const newPost = { id: Date.now(), topicId: currentTopicId, authorId: currentUser.id, author: currentUser.nickname, role: currentUser.role, content, likes: 0, timestamp: Date.now(), avatarColor: currentUser.avatarColor };
+  posts.push(newPost);
+  const topic = topics.find(t => t.id === currentTopicId);
+  if (topic) topic.postsCount++;
+  saveAll(users, topics, posts, reports, verifyRequests, banned, muted, pinned, likes);
+  renderPosts(currentTopicId);
+  textarea.value = "";
+  document.getElementById("replyArea").classList.remove("open");
+  showToast("Сообщение отправлено!");
+}
+
+function showProfileModal() {
+  const isAdm = isAdmin();
+  const verifyRequests = JSON.parse(localStorage.getItem(DB_KEYS.VERIFY)) || [];
+  const verifyButton = !isAdm && !currentUser.verified ? `<button id="openVerifyBtnProfile" style="background:#8A2BE2;border:none;padding:8px 20px;border-radius:40px;margin-top:12px;cursor:pointer;transition:all 0.2s;">✔ Получить галочку</button>` : '';
+  const adminReportsButton = isAdm ? `<button id="adminReportsBtn" style="background:#FF3B3B;border:none;padding:8px 20px;border-radius:40px;margin-top:12px;cursor:pointer;">📋 Заявки на верификацию (${verifyRequests.filter(r => r.status === "pending").length})</button>` : '';
+  const content = document.getElementById("profileCardContent");
+  content.innerHTML = `<h3>👤 ${escapeHtml(currentUser.nickname)}${currentUser.verified ? '<span class="verified-badge">✔</span>' : ''}${isAdm ? '<span class="admin-badge">ADMIN</span>' : ''}</h3><p>Роль: ${isAdm ? 'Администратор' : 'Игрок'}</p><p>📝 Сообщений: ${(JSON.parse(localStorage.getItem(DB_KEYS.POSTS)) || []).filter(p => p.authorId === currentUser.id).length}</p><p>📅 Регистрация: ${currentUser.registered}</p>${verifyButton}${adminReportsButton}<button id="closeProfileBtn" style="background:#2a2350;border:none;padding:8px 24px;border-radius:40px;margin-top:16px;cursor:pointer;">Закрыть</button>`;
+  document.getElementById("profileModal").classList.add("active");
+  document.getElementById("closeProfileBtn")?.addEventListener("click", () => document.getElementById("profileModal").classList.remove("active"));
+  document.getElementById("openVerifyBtnProfile")?.addEventListener("click", () => { document.getElementById("profileModal").classList.remove("active"); document.getElementById("verifyModal").classList.add("active"); });
+  document.getElementById("adminReportsBtn")?.addEventListener("click", () => { document.getElementById("profileModal").classList.remove("active"); openAdminReports(); });
+}
+
+function openAdminReports() {
+  let verifyRequests = JSON.parse(localStorage.getItem(DB_KEYS.VERIFY)) || [];
+  const pendingRequests = verifyRequests.filter(r => r.status === "pending");
+  const reportsList = document.getElementById("reportsList");
+  reportsList.innerHTML = pendingRequests.map(req => `<div style="background:#0A0A0F;padding:16px;border-radius:12px;margin-bottom:12px;"><p><strong>👤 ${escapeHtml(req.nickname)}</strong></p><p>📝 ${escapeHtml(req.description || "Без описания")}</p>${req.videoData ? `<video controls style="max-width:100%;margin:8px 0;border-radius:8px;"><source src="${req.videoData}" type="video/mp4"></video>` : ''}<div style="display:flex;gap:12px;margin-top:12px;"><button class="verify-accept" data-req-id="${req.id}" style="background:#39FF14;border:none;padding:6px 16px;border-radius:20px;cursor:pointer;">✔ Принять</button><button class="verify-reject" data-req-id="${req.id}" style="background:#FF3B3B;border:none;padding:6px 16px;border-radius:20px;cursor:pointer;">❌ Отклонить</button></div></div>`).join("");
+  document.querySelectorAll(".verify-accept").forEach(btn => btn.addEventListener("click", () => { const reqId = parseInt(btn.dataset.reqId); const request = verifyRequests.find(r => r.id === reqId); if (request) { request.status = "accepted"; let users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || []; const user = users.find(u => u.id === request.userId); if (user) user.verified = true; localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users)); localStorage.setItem(DB_KEYS.VERIFY, JSON.stringify(verifyRequests)); openAdminReports(); showToast(`Галочка выдана ${request.nickname}`); } }));
+  document.querySelectorAll(".verify-reject").forEach(btn => btn.addEventListener("click", () => { const reqId = parseInt(btn.dataset.reqId); verifyRequests = verifyRequests.filter(r => r.id !== reqId); localStorage.setItem(DB_KEYS.VERIFY, JSON.stringify(verifyRequests)); openAdminReports(); showToast("Заявка отклонена"); }));
+  document.getElementById("adminReportsModal").classList.add("active");
+}
+
+function submitVerifyRequest() {
+  const videoFile = document.getElementById("verifyVideo").files[0];
+  const description = document.getElementById("verifyDescription").value;
+  if (!videoFile) { showToast("Пожалуйста, выберите видео"); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    let verifyRequests = JSON.parse(localStorage.getItem(DB_KEYS.VERIFY)) || [];
+    verifyRequests.push({ id: Date.now(), userId: currentUser.id, nickname: currentUser.nickname, videoData: e.target.result, description: description, status: "pending" });
+    localStorage.setItem(DB_KEYS.VERIFY, JSON.stringify(verifyRequests));
+    showToast("Заявка на верификацию отправлена админу");
+    document.getElementById("verifyModal").classList.remove("active");
+    document.getElementById("verifyVideo").value = "";
+    document.getElementById("verifyDescription").value = "";
+  };
+  reader.readAsDataURL(videoFile);
+}
+
+function openCreateTopicModal() {
+  const select = document.getElementById("newTopicSectionSelect");
+  select.innerHTML = sections.map(sec => `<option value="${sec.id}">${sec.icon} ${sec.name}</option>`).join("");
+  document.getElementById("createTopicModal").classList.add("active");
+}
+
+function submitNewTopic() {
+  const title = document.getElementById("newTopicTitle").value.trim();
+  const sectionId = document.getElementById("newTopicSectionSelect").value;
+  const content = document.getElementById("newTopicContent").value.trim();
+  if (!title) { showToast("Введите название"); return; }
+  let topics = JSON.parse(localStorage.getItem(DB_KEYS.TOPICS)) || [];
+  let posts = JSON.parse(localStorage.getItem(DB_KEYS.POSTS)) || [];
+  let users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+  let reports = JSON.parse(localStorage.getItem(DB_KEYS.REPORTS)) || [];
+  let verifyRequests = JSON.parse(localStorage.getItem(DB_KEYS.VERIFY)) || [];
+  let banned = JSON.parse(localStorage.getItem(DB_KEYS.BANNED)) || [];
+  let muted = JSON.parse(localStorage.getItem(DB_KEYS.MUTED)) || [];
+  let pinned = JSON.parse(localStorage.getItem(DB_KEYS.PINNED)) || [];
+  let likes = JSON.parse(localStorage.getItem(DB_KEYS.LIKES)) || [];
+  const newTopic = { id: Date.now(), title, section: sectionId, authorId: currentUser.id, author: currentUser.nickname, postsCount: content ? 1 : 0, lastActivity: Date.now() };
+  topics.push(newTopic);
+  if (content) posts.push({ id: Date.now(), topicId: newTopic.id, authorId: currentUser.id, author: currentUser.nickname, role: currentUser.role, content, likes: 0, timestamp: Date.now(), avatarColor: currentUser.avatarColor });
+  saveAll(users, topics, posts, reports, verifyRequests, banned, muted, pinned, likes);
+  document.getElementById("createTopicModal").classList.remove("active");
+  renderMain();
+  showToast(`Тема "${title}" создана!`);
+}
+
+function renderNav(activeView) {
+  const navDiv = document.getElementById("navLinks");
+  navDiv.innerHTML = `<button class="nav-btn ${activeView === 'forum' ? 'active' : ''}" data-view="forum">🏠 Форум</button><button class="nav-btn ${activeView === 'rules' ? 'active' : ''}" data-view="rules">📜 Правила</button>`;
+  document.querySelectorAll(".nav-btn").forEach(btn => btn.addEventListener("click", () => {
+    if (btn.dataset.view === "forum") { document.getElementById("mainView").style.display = "block"; document.getElementById("threadView").classList.add("hidden-view"); document.getElementById("rulesView").classList.add("hidden-view"); renderMain(); renderNav("forum"); }
+    else { document.getElementById("mainView").style.display = "none"; document.getElementById("threadView").classList.add("hidden-view"); document.getElementById("rulesView").classList.remove("hidden-view"); document.getElementById("rulesGrid").innerHTML = `<div class="rule-card"><div>🔹 Уважение</div><div>Не оскорбляй других игроков</div></div><div class="rule-card"><div>🔹 Без спама</div><div>Не флуди и не засоряй темы</div></div><div class="rule-card"><div>🔹 По теме</div><div>Пиши сообщения, относящиеся к обсуждению</div></div><div class="rule-card"><div>🔹 Честность</div><div>Не обманывай и не вводи в заблуждение</div></div><div class="rule-card"><div>🔹 Лёгкость</div><div>Это комьюнити — будь адекватным :)</div></div>`; renderNav("rules"); }
+  }));
+}
+
+function updateMiniProfile() {
+  if (!currentUser) return;
+  const isAdm = isAdmin();
+  document.getElementById("miniNick").innerHTML = `${escapeHtml(currentUser.nickname)}${isAdm ? '<span class="admin-badge">ADMIN</span>' : ''}${currentUser.verified ? '<span class="verified-badge" title="Подтверждённый пользователь">✔</span>' : ''}<button class="logout-btn" id="logoutBtn">Выйти</button>`;
+  document.getElementById("miniAvatar").style.background = currentUser.avatarColor;
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
+}
+
+function initAppAfterAuth() {
+  renderMain();
+  renderFilters();
+  renderNav("forum");
+  updateMiniProfile();
+  
+  document.getElementById("createTopicBtn")?.addEventListener("click", openCreateTopicModal);
+  document.getElementById("cancelTopicBtn")?.addEventListener("click", () => document.getElementById("createTopicModal").classList.remove("active"));
+  document.getElementById("submitTopicBtn")?.addEventListener("click", submitNewTopic);
+  document.getElementById("closeThreadBtn")?.addEventListener("click", () => { document.getElementById("mainView").style.display = "block"; document.getElementById("threadView").classList.add("hidden-view"); renderMain(); });
+  document.getElementById("closeRulesBtn")?.addEventListener("click", () => { document.getElementById("mainView").style.display = "block"; document.getElementById("rulesView").classList.add("hidden-view"); renderMain(); });
+  document.getElementById("profileMiniBtn")?.addEventListener("click", showProfileModal);
+  document.getElementById("openReplyBtn")?.addEventListener("click", () => document.getElementById("replyArea").classList.toggle("open"));
+  document.getElementById("sendMessageBtn")?.addEventListener("click", sendMessage);
+  document.getElementById("cancelVerifyBtn")?.addEventListener("click", () => document.getElementById("verifyModal").classList.remove("active"));
+  document.getElementById("submitVerifyBtn")?.addEventListener("click", submitVerifyRequest);
+  document.getElementById("cancelReportBtn")?.addEventListener("click", () => document.getElementById("reportModal").classList.remove("active"));
+  document.getElementById("closeReportsBtn")?.addEventListener("click", () => document.getElementById("adminReportsModal").classList.remove("active"));
+}
+
+initDatabase();
+checkSession();
+</script>
+</body>
+</html>
